@@ -32,7 +32,14 @@
                             <outlet property="delegate" destination="GGk-d7-kIW" id="ouQ-rH-9PR"/>
                         </connections>
                     </tableView>
-                    <navigationItem key="navigationItem" title="MiTodoApp" id="wqD-Gc-50g"/>
+                    <navigationItem key="navigationItem" title="MiTodoApp" id="wqD-Gc-50g">
+                        <barButtonItem key="rightBarButtonItem" systemItem="add" id="b89-kb-J4c">
+                            <color key="tintColor" red="0.99999600649999998" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                            <connections>
+                                <action selector="addButtonPressed:" destination="GGk-d7-kIW" id="KvY-a4-GV8"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="j3v-ox-rrQ" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>

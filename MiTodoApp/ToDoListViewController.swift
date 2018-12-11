@@ -12,8 +12,14 @@ class ToDoListViewController: UITableViewController {
 
     var itemArray = ["Find Mike", "Buy eggos", "Destroy the demogorgon"]
     
+    let defaults = UserDefaults.standard
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        if let items = defaults.array(forKey: "ToDoListArray") as? [String] {
+            itemArray = items
+        }
        
     }
 
@@ -59,18 +65,20 @@ class ToDoListViewController: UITableViewController {
     
     
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
-        
+        //This var will help to access the textField as a local variable. 
         var textField = UITextField()
         
+        //Alert launched after pressing the addButton
         let alert = UIAlertController(title: "Add New ToDo Item", message: "", preferredStyle: .alert)
         
         let action = UIAlertAction(title: "Add item", style: .default) { (action) in
             //What happens when the user clicks in the Add Item button on our UIAlert
             self.itemArray.append(textField.text!)
+            self.defaults.set(self.itemArray, forKey: "ToDoListArray") // Eaxmple of Persisting data
             // New data appended will appear in the tableView reloading the data.
             self.tableView.reloadData()
         }
-        
+           // Add a textField for the user to type his reminders.
         alert.addTextField{ (alertTextField) in
             alertTextField.placeholder = "Create a new Item"
             textField = alertTextField

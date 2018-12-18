@@ -12,34 +12,18 @@ class ToDoListViewController: UITableViewController {
 
     var itemArray = [Item]()
     
-    let defaults = UserDefaults.standard
+    // DataFilePath creadt to access the local data in the users memory through a documents directory and will append the new data in a file called Items.plist
+    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        let newItem = Item()
-        newItem.title = "Crear Blog"
-        itemArray.append(newItem)
+        loadItems()
         
-        let newItem2 = Item()
-        newItem2.title = "Crear Facebook"
-        itemArray.append(newItem2)
+//        if let items = defaults.array(forKey: "ToDoListArray") as? [Item] {
+//            itemArray = items
+//        }
         
-        let newItem3 = Item()
-        newItem3.title = "Crear Instagram "
-        itemArray.append(newItem3)
-        
-        let newItem4 = Item()
-        newItem4.title = "Crear Twitter"
-        itemArray.append(newItem4)
-        
-        let newItem5 = Item()
-        newItem5.title = "Visita www.borpaul.com"
-        itemArray.append(newItem5)
-        
-        if let items = defaults.array(forKey: "ToDoListArray") as? [Item] {
-            itemArray = items
-        }
        
     }
 
@@ -79,8 +63,8 @@ class ToDoListViewController: UITableViewController {
         
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done // Conditional to make the item true/false if its true
                                                                        //changes to false and viceversa.
-        
-        tableView.reloadData()
+        // Function to save items
+        saveItems()
         
         tableView.deselectRow(at: indexPath, animated: true)
         
@@ -103,9 +87,9 @@ class ToDoListViewController: UITableViewController {
             let newItem = Item()
             newItem.title = textField.text!
             self.itemArray.append(newItem)   // The array will get all items from the New Item Instance
-            self.defaults.set(self.itemArray, forKey: "ToDoListArray") // Eaxmple of Persisting data
-            // New data appended will appear in the tableView reloading the data.
-            self.tableView.reloadData()
+
+            self.saveItems()
+          
         }
            // Add a textField for the user to type his reminders.
         alert.addTextField{ (alertTextField) in
@@ -119,9 +103,33 @@ class ToDoListViewController: UITableViewController {
         
         
     }
+    
+    // MARK: - Model Manipulation Method
+    
+    func saveItems() {
+        let encoder = PropertyListEncoder()
         
+        do {
+            let data = try encoder.encode(itemArray)
+            try data.write(to: dataFilePath!)
+        }
+        catch {
+            print("Error encoding item array \(error)")
+        }
+        
+        // New data appended will appear in the tableView reloading the data.
+        self.tableView.reloadData()
+    }
+    
+    func loadItems() {
+        if let data = try? Data(contentsOf: dataFilePath!) {
+            let decoder = PropertyListDecoder()
+            do {
+            itemArray = try decoder.decode([Item].self, from: data)
+            } catch {
+                print("Error decoding item array \(error)")
+            }
+        }
+    }
         
 }
-    
-
-

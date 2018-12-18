@@ -8,7 +8,9 @@
 
 import Foundation
 
-class Item {
+
+// Class Item now can encode and decode itself in a plist
+class Item: Codable{
     var title: String = ""
     var done: Bool = false
 }

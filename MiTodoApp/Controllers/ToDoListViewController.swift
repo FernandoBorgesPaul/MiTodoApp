@@ -7,26 +7,28 @@
 //
 
 import UIKit
+import CoreData
 
 class ToDoListViewController: UITableViewController {
-
+    
     var itemArray = [Item]()
     
-    // DataFilePath creadt to access the local data in the users memory through a documents directory and will append the new data in a file called Items.plist
+    // DataFilePath is created to access the local data in the users memory through a documents directory and will append the new data in a file called Items.plist
     let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
+    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        loadItems()
+                loadItems()
         
-//        if let items = defaults.array(forKey: "ToDoListArray") as? [Item] {
-//            itemArray = items
-//        }
+//                if let items = defaults.array(forKey: "ToDoListArray") as? [Item] {
+//                    itemArray = items
+//                }
         
-       
+        
     }
-
+    
     
     //MARK: - Tableview DataSource Methods
     
@@ -34,7 +36,7 @@ class ToDoListViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return itemArray.count
     }
-
+    
     // Se crean las filas y se llenan con los datos que contiene cada fila con el indexPath
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
@@ -48,11 +50,11 @@ class ToDoListViewController: UITableViewController {
         cell.accessoryType = item.done ? .checkmark : .none
         
         // Another form to add the checkmark or none to the Items on every row.
-//        if item.done == true {
-//            cell.accessoryType = .checkmark
-//        } else {
-//            cell.accessoryType = .none
-//        }
+        //        if item.done == true {
+        //            cell.accessoryType = .checkmark
+        //        } else {
+        //            cell.accessoryType = .none
+        //        }
         
         return cell
     }
@@ -63,8 +65,8 @@ class ToDoListViewController: UITableViewController {
         
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done // Conditional to make the item true/false if its true
                                                                        //changes to false and viceversa.
-        // Function to save items
-        saveItems()
+        
+        saveItems() // Function to save items
         
         tableView.deselectRow(at: indexPath, animated: true)
         
@@ -83,15 +85,18 @@ class ToDoListViewController: UITableViewController {
         let alert = UIAlertController(title: "Add New ToDo Item", message: "", preferredStyle: .alert)
         
         let action = UIAlertAction(title: "Add item", style: .default) { (action) in
+            // We create the context that will be taken as the AppDelegate
+            
             //What happens when the user clicks in the Add Item button on our UIAlert
-            let newItem = Item()
+            let newItem = Item(context: self.context)
             newItem.title = textField.text!
+            newItem.done = false             // Initialize each Item as false
             self.itemArray.append(newItem)   // The array will get all items from the New Item Instance
-
+            
             self.saveItems()
-          
+            
         }
-           // Add a textField for the user to type his reminders.
+        // Add a textField for the user to type his reminders.
         alert.addTextField{ (alertTextField) in
             alertTextField.placeholder = "Create a new Item"
             textField = alertTextField
@@ -107,29 +112,27 @@ class ToDoListViewController: UITableViewController {
     // MARK: - Model Manipulation Method
     
     func saveItems() {
-        let encoder = PropertyListEncoder()
         
         do {
-            let data = try encoder.encode(itemArray)
-            try data.write(to: dataFilePath!)
+            
+            try context.save()
         }
         catch {
-            print("Error encoding item array \(error)")
+            print("Error saving context \(error)")
         }
         
         // New data appended will appear in the tableView reloading the data.
         self.tableView.reloadData()
     }
     
+    //Read the data.
     func loadItems() {
-        if let data = try? Data(contentsOf: dataFilePath!) {
-            let decoder = PropertyListDecoder()
-            do {
-            itemArray = try decoder.decode([Item].self, from: data)
-            } catch {
-                print("Error decoding item array \(error)")
-            }
+        let request: NSFetchRequest<Item> = Item.fetchRequest() // Makes the request of Items
+        do {
+         itemArray = try context.fetch(request) // results will be saved in the itemArray declared previously.
+        } catch {
+            print("Error fetching data from context \(error)")
         }
-    }
         
+    }
 }

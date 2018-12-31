@@ -11,6 +11,8 @@ import CoreData
 
 class ToDoListViewController: UITableViewController {
     
+    
+    
     var itemArray = [Item]()
     
     // DataFilePath is created to access the local data in the users memory through a documents directory and will append the new data in a file called Items.plist
@@ -20,11 +22,11 @@ class ToDoListViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-                loadItems()
+        loadItems()
         
-//                if let items = defaults.array(forKey: "ToDoListArray") as? [Item] {
-//                    itemArray = items
-//                }
+        //                if let items = defaults.array(forKey: "ToDoListArray") as? [Item] {
+        //                    itemArray = items
+        //                }
         
         
     }
@@ -33,11 +35,13 @@ class ToDoListViewController: UITableViewController {
     //MARK: - Tableview DataSource Methods
     
     // Se crea el número de filas de la tableView con base a itemArray
+    // Creates the number of row according to the itemArray.
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return itemArray.count
     }
     
     // Se crean las filas y se llenan con los datos que contiene cada fila con el indexPath
+    //Creates the rows and fills them using the data on each row with the indexPath.
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell", for: indexPath)
@@ -64,7 +68,12 @@ class ToDoListViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done // Conditional to make the item true/false if its true
-                                                                       //changes to false and viceversa.
+        //changes to false and viceversa.
+        
+        
+        //        context.delete(itemArray[indexPath.row]) // removes data form the temporary area of store(context)Important to call
+        //                                                 // this first
+        //        itemArray.remove(at: indexPath.row)      // removes only the row from the itemArray , but not in the Database
         
         saveItems() // Function to save items
         
@@ -126,13 +135,46 @@ class ToDoListViewController: UITableViewController {
     }
     
     //Read the data.
-    func loadItems() {
-        let request: NSFetchRequest<Item> = Item.fetchRequest() // Makes the request of Items
+    func loadItems(with request: NSFetchRequest<Item> = Item.fetchRequest()) {  // LoadItems has a default Value
+        
+        // Makes the request of Items
         do {
-         itemArray = try context.fetch(request) // results will be saved in the itemArray declared previously.
+            itemArray = try context.fetch(request) // results will be saved in the itemArray declared previously.
         } catch {
             print("Error fetching data from context \(error)")
         }
+        tableView.reloadData()
         
     }
+}
+//MARK: - Search Bar Methods
+extension ToDoListViewController: UISearchBarDelegate {
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        let request : NSFetchRequest<Item> = Item.fetchRequest()
+        
+        request.predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!) // NSPredicate specifies how the data
+                                                                        //should be fetched and filtered. It is query language.
+        let sortDescriptor = NSSortDescriptor(key: "title", ascending: true)
+        
+        request.sortDescriptors = [sortDescriptor]
+        
+        loadItems(with: request)
+        
+        func searchBar(_ searchBar: UISearchBar, textDidChange: String) {   // returns the original state when searchBar
+                                                                            // deletes everything from the type space
+            if searchBar.text?.count == 0 {
+                loadItems()
+                
+                DispatchQueue.main.async {               // Ask the dispatch to get the main queue and run this method on the
+                                                         //main Quieue 
+                    searchBar.resignFirstResponder()     // Go to the original state
+                }
+                
+                
+            }
+        }
+        
+    }
+    
 }

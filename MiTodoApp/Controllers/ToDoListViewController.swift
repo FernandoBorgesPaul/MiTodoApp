@@ -15,14 +15,18 @@ class ToDoListViewController: UITableViewController {
     
     var itemArray = [Item]()
     
-    // DataFilePath is created to access the local data in the users memory through a documents directory and will append the new data in a file called Items.plist
-    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
+    var selectedCategory: Category? {      // When this selectedCategory gets created it will call the Items for that specific
+                                           // Category.
+        didSet {                           // didSet , everything between the curly braces is going to happen as soon as
+                                           // selectedCategory gets set with a value. 
+            loadItems()
+        }
+    }
+    
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        loadItems()
         
         //                if let items = defaults.array(forKey: "ToDoListArray") as? [Item] {
         //                    itemArray = items
@@ -100,6 +104,11 @@ class ToDoListViewController: UITableViewController {
             let newItem = Item(context: self.context)
             newItem.title = textField.text!
             newItem.done = false             // Initialize each Item as false
+            newItem.parentCategory = self.selectedCategory   // parentCaterogy is available because I created it in the DataModel
+                                                             //relationships.
+                                                             // it loads the items from the cateogory selected
+                                                            // NOTE: - Look at selectedCategory above.
+            
             self.itemArray.append(newItem)   // The array will get all items from the New Item Instance
             
             self.saveItems()
@@ -135,7 +144,20 @@ class ToDoListViewController: UITableViewController {
     }
     
     //Read the data.
-    func loadItems(with request: NSFetchRequest<Item> = Item.fetchRequest()) {  // LoadItems has a default Value
+    func loadItems(with request: NSFetchRequest<Item> = Item.fetchRequest(),predicate: NSPredicate? = nil) {  // LoadItems has
+                                                                                                             //default Values
+        
+        // NSPredicate is a foundation class that specifies how data should be fetched and filtered.
+        //Loads items from each specific Category.
+        let categoryPredicate = NSPredicate(format: "parentCategory.name MATCHES %@", selectedCategory!.name!)
+        
+        //With this optional binding we carefully unwrap without expecting a nil value.
+        if let additionalPredicate = predicate {
+            request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [categoryPredicate,additionalPredicate])
+        } else {
+            request.predicate = categoryPredicate
+        }
+        
         
         // Makes the request of Items
         do {
@@ -153,22 +175,23 @@ extension ToDoListViewController: UISearchBarDelegate {
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         let request : NSFetchRequest<Item> = Item.fetchRequest()
         
-        request.predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!) // NSPredicate specifies how the data
-                                                                        //should be fetched and filtered. It is query language.
+        let predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!) // NSPredicate specifies how the data
+                                                                         //should be fetched and filtered. It is query language.
+        
         let sortDescriptor = NSSortDescriptor(key: "title", ascending: true)
         
         request.sortDescriptors = [sortDescriptor]
         
-        loadItems(with: request)
+        loadItems(with: request, predicate: predicate)
         
         func searchBar(_ searchBar: UISearchBar, textDidChange: String) {   // returns the original state when searchBar
                                                                             // deletes everything from the type space
             if searchBar.text?.count == 0 {
                 loadItems()
                 
-                DispatchQueue.main.async {               // Ask the dispatch to get the main queue and run this method on the
-                                                         //main Quieue 
-                    searchBar.resignFirstResponder()     // Go to the original state
+                DispatchQueue.main.async {               // Ask the dispatch to get the main queue and run this method on it
+                    
+                searchBar.resignFirstResponder()     // Go to the original state, when you stop searching some words.
                 }
                 
                 

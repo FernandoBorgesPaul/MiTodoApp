@@ -8,16 +8,17 @@
 
 import UIKit
 import RealmSwift
+import ChameleonFramework
 
-class ToDoListViewController: UITableViewController {
-    
-    
+
+class ToDoListViewController: SwipeTableViewController {
     
     var todoItems: Results<Item>?
     let realm = try! Realm()
+    @IBOutlet weak var searchBar: UISearchBar!
     
     var selectedCategory: Category? {      // When this selectedCategory gets created it will call the Items for that specific
-        // Category.
+                                           // Category.
         didSet {                           // didSet , everything between the curly braces is going to happen as soon as
             // selectedCategory gets set with a value.
             loadItems()
@@ -29,10 +30,50 @@ class ToDoListViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        //                if let items = defaults.array(forKey: "ToDoListArray") as? [Item] {
-        //                    itemArray = items
-        //                }
+        tableView.separatorStyle = .none
         
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        //The title of the viewController will have the same name as the category you selected.
+        title = selectedCategory?.name
+        
+        
+        
+        //Set the navigation controller to have the same color as the selected category.
+           guard let colourHex = selectedCategory?.colour  else { fatalError()}
+    
+        updateNavBar(withHexCode: colourHex)
+        
+    }
+    
+    //View Vill disappear will take back the original colour of the navigator once you leave the ToDoViewController, otherwise
+    // The CategoryViewController will have the same colour as the previous ToDoViewController
+    override func viewWillDisappear(_ animated: Bool) {
+        
+        updateNavBar(withHexCode: "1D9BF6")
+        
+    }
+    
+    // MARK:- Nav Bar Set up Methods
+    
+    func updateNavBar(withHexCode colourHexCode: String){
+        
+        guard let navBar = navigationController?.navigationBar else {fatalError("Navigation controller does not exist.")}
+        
+        // we guard this variable and if the nagivation controller exists, then it sets its colour into the same as the selected category.
+        guard let navBarColour = UIColor(hexString: colourHexCode) else {fatalError()}
+        
+        navBar.barTintColor = navBarColour
+        //Contrast the buttons in the navigation bar.
+        navBar.tintColor = ContrastColorOf(navBarColour, returnFlat: true)
+        
+        // This will contrast colour of the text from the navigation Title considering the navigation bar Colour to its contrast.
+        // This made the BACK BUTTON and ADD BUTTON to have a contrast:
+        navBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor : ContrastColorOf(navBarColour, returnFlat: true)]
+        
+        // Search Bar gets the colour from the navigation Bar.
+        searchBar.barTintColor = navBarColour
         
     }
     
@@ -49,21 +90,25 @@ class ToDoListViewController: UITableViewController {
     //Creates the rows and fills them using the data on each row with the indexPath.
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell", for: indexPath)
+        let cell = super.tableView(tableView, cellForRowAt: indexPath)
         
         if let item = todoItems?[indexPath.row] {
             
             cell.textLabel?.text = item.title
-            
+            //If we don't have an empty category row, then darken the colour to the porcentage from the division. 
+            if let colour = UIColor(hexString: selectedCategory!.colour)?.darken(byPercentage: CGFloat(indexPath.row)/CGFloat(todoItems!.count)) {
+                
+                cell.backgroundColor = colour
+                
+                cell.textLabel?.textColor = ContrastColorOf(colour, returnFlat: true) // This makes the text in the cell have a contrast color in order to avoid not a good match of colours between the cell and the text.
+                
+            }
             
             cell.accessoryType = item.done ? .checkmark : .none
             
         } else {
             cell.textLabel?.text = "No items added"
         }
-        
-        
-        
         
         return cell
     }
@@ -143,8 +188,20 @@ class ToDoListViewController: UITableViewController {
         todoItems = selectedCategory?.items.sorted(byKeyPath: "title",ascending: true)
         
         tableView.reloadData()
-        
     }
+    
+    override func updateModel(at indexPath: IndexPath) {
+        if let item = todoItems?[indexPath.row] {
+            do {
+                try realm.write {
+                    realm.delete(item)
+                }
+            } catch {
+                print("Error deleting items \(error)")
+            }
+        }
+    }
+    
 }
 //MARK: - Search Bar Methods
 

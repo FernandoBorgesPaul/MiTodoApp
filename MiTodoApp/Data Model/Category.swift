@@ -11,6 +11,7 @@ import RealmSwift
 
 class Category: Object {
     @objc dynamic var name: String = ""  // Dynamic means you can track changes while the app is running in simulator.
+    @objc dynamic var colour: String = ""  // Random colours for every Category we will create.
     let items = List<Item>()            // List are the way you declared relationships using the Realm Framework.
     
 }

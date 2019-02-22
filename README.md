@@ -37,9 +37,6 @@ https://github.com/viccalexander/Chameleon
 [Back To The Top](#read-me-template)
 
 
-
-[Back To The Top](#read-me-template)
-
 ---
 
 ## Author Info

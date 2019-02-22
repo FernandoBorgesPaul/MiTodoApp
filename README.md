@@ -22,6 +22,7 @@ The App was developed first using CoreData for data persistence and later REALM 
 ## Images
 
 ![Image](https://github.com/FernandoBorgesPaul/MiTodoApp/blob/master/IMG_40662.PNG)
+![Image](https://github.com/FernandoBorgesPaul/MiTodoApp/blob/master/IMG_40652.PNG)
 
 ## Technologies
 

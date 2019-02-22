@@ -1,11 +1,12 @@
 # MiTodoApp
 
----
 
 ### Table of Contents
 
 
 - [Description](#description)
+- [Images](#Images)
+- [Technologies](#description)
 - [References](#references)
 - [Author Info](#author-info)
 
@@ -16,7 +17,13 @@
 This ToDoApp is an App to keep track of you activities or set lists of reminders organized by Categories where you can add list of things to do.
 The App was developed first using CoreData for data persistence and later REALM framework was implemented to do that persistence. 
 
-#### Technologies
+---
+
+## Images
+
+![Image 1]()
+
+## Technologies
 
 - CoreData 
 - Realm FrameWrok

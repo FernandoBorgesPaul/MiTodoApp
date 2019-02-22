@@ -1,9 +1,5 @@
 # MiTodoApp
 
-
-![Project Image](https://drive.google.com/open?id=1w1DzYizknZbv_tuiTQmElgMAWXv7VFJd)
-
-
 ---
 
 ### Table of Contents
